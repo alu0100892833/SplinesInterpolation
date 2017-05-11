@@ -28,7 +28,8 @@ public class SplinePanel extends JPanel {
 	
 	
 	@Override
-	protected void paintComponent(Graphics g){
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
 	    splinesModel.draw(g);
 	}
 
