@@ -2,11 +2,8 @@ package alu0100892833.pai.splines;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.Toolkit;
-import java.net.URL;
 
-import javax.swing.ImageIcon;
 import javax.swing.JApplet;
 
 
@@ -25,15 +22,22 @@ public class Splines extends JApplet {
 		add(controller.getSplinePanel(), BorderLayout.CENTER);
 		add(controller.getControlPanel(), BorderLayout.SOUTH);
 		setSize(size);
-		loadInfoImage(controller);
+		//loadInfoImage(controller);
 	}
 	
-	public void loadInfoImage(SplinesInterpolationControl controller) {
-		URL urlForInfo = getClass().getResource("img/info.png");		
-		ImageIcon picture = new ImageIcon(urlForInfo);
-		Image infoPicture = picture.getImage();
+	/*public void loadInfoImage(SplinesInterpolationControl controller) {
+		URL urlForInfo = null;
+		Image infoPicture = null;
+		try {
+			urlForInfo = new URL(getCodeBase(), "img/info.png");
+			infoPicture = ImageIO.read(urlForInfo);
+			infoPicture = getImage(getDocumentBase(), "img/info.png");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+		
 		controller.getControlPanel().loadImageForInfo(infoPicture);
-	}
+	}*/
 
 	public static void main(String[] args) {
 		Dimension fullScreen = Toolkit.getDefaultToolkit().getScreenSize();
