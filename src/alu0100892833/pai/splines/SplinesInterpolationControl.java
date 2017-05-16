@@ -78,6 +78,9 @@ public class SplinesInterpolationControl {
 		frame.setVisible(true);
 	}
 	
+	/**
+	 * Loads the info image using the loadImageForInfo method of the control panel.
+	 */
 	private void loadInfoImage() {
 		Image picture = null;
 		try {
@@ -114,7 +117,11 @@ public class SplinesInterpolationControl {
 	
 	
 	
-	
+	/**
+	 * Listener class to add functionality to the buttons of the control panel.
+	 * @author Óscar Darias Plasencia
+	 * @since 14-5-2017
+	 */
 	public class ControlsListener implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -138,6 +145,11 @@ public class SplinesInterpolationControl {
 		}
 	}
 	
+	/**
+	 * Listener for the keys, so user can interact with the graphics using the keyboard.
+	 * @author Óscar Darias Plasencia
+	 * @since 14-5-2017
+	 */
 	public class KeyManaging extends KeyAdapter {
 		@Override
 		public void keyPressed(KeyEvent ke) {
@@ -145,10 +157,16 @@ public class SplinesInterpolationControl {
 			if (getSplinePanel().getSelectedNode() != SplinePanel.NO_SELECTED) {
 				if (ke.getKeyCode() == KeyEvent.VK_F) {
 					getSplinePanel().setSelectedNode(getSplinePanel().getSelectedNode() - 1);
+					if (getSplinePanel().getSelectedNode() == SplinePanel.NO_SELECTED)
+						getSplinePanel().setSelectedNode(0);
+					splinePanel.revalidate();
+					splinePanel.repaint();
 				} else if (ke.getKeyCode() == KeyEvent.VK_G) {
 					getSplinePanel().setSelectedNode(getSplinePanel().getSelectedNode() + 1);
 					if (getSplinePanel().getSelectedNode() >= getSplinePanel().getSplinesModel().getControlPoints().size())
-						getSplinePanel().setSelectedNode(SplinePanel.NO_SELECTED);
+						getSplinePanel().setSelectedNode(getSplinePanel().getSplinesModel().getControlPoints().size() - 1);
+					splinePanel.revalidate();
+					splinePanel.repaint();
 				} else if (ke.getKeyCode() == KeyEvent.VK_UP) {
 					activePoint.y -= POINT_MOVEMENT; 
 					splinePanel.revalidate();
@@ -171,6 +189,11 @@ public class SplinesInterpolationControl {
 	}
 	
 	
+	/**
+	 * Mouse Adapter extended class for mouse interaction with the graphics.
+	 * @author Óscar Darias Plasencia
+	 * @since 14-5-2017
+	 */
 	protected class PointSelection extends MouseAdapter {
 		@Override
 		public void mouseClicked(MouseEvent me) {

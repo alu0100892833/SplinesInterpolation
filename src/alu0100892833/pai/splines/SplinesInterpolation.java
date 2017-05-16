@@ -25,19 +25,23 @@ import java.util.List;
 public class SplinesInterpolation {
 	public static final int POINT_RADIUS = 10;
 	public static final int POINT_DIAMETER = 2 * POINT_RADIUS;
+	public static final int OUTRING = (int) (POINT_RADIUS / 3);
 	private static final int BOTTOM_MARGIN_PROPORTION = 4;
 	private static final int RIGHT_MARGIN_PROPORTION = 8;
 	private static final double X_INCREMENTATION = 0.1;
 	private static final int STROKE_THICKNESS = 5;
 	private static final Color[] POSSIBLE_COLORS = { Color.RED, Color.BLACK, Color.BLUE, Color.YELLOW, Color.GREEN, Color.GRAY };
 	
-	private int nNodes;
-	private Dimension space;
-	private ArrayList<Point> controlPoints;
-	private ArrayList<Point2D.Double> graphic;
-	private Color controlPointsColor;
-	private Color graphicColor;
+	private int nNodes;							/* Number of nodes or control points */
+	private Dimension space;					/* Available space for drawing */
+	private ArrayList<Point> controlPoints; 	/* ArrayList with the control points */
+	private ArrayList<Point2D.Double> graphic;  /* ArrayList with the generated points */
+	private Color controlPointsColor;           /* Control points color */
+	private Color graphicColor;					/* Graphics color */
 	
+	/**
+	 * Main constructor
+	 */
 	public SplinesInterpolation() {
 		nNodes = 0;
 		controlPoints = new ArrayList<>();
@@ -97,6 +101,9 @@ public class SplinesInterpolation {
 		this.graphicColor = graphicColor;
 	}
 
+	/**
+	 * Generates as many aleatory points as number of nodes.
+	 */
 	public void generateControlPoints() {
 		Random pointGenerator = new Random();
 		while (getControlPoints().size() != getnNodes()) {
@@ -106,6 +113,9 @@ public class SplinesInterpolation {
 		}
 	}
 	
+	/**
+	 * Generates the graphics for the established control points.
+	 */
 	public void generateGraphics() {
 		getGraphic().clear();
 		MonotoneCubicSpline interpolator = new MonotoneCubicSpline(getControlPoints());
@@ -118,24 +128,40 @@ public class SplinesInterpolation {
 		}
 	}
 
-	public void draw(Graphics g) {
+	/**
+	 * Draws the complete model data.
+	 * @param g Graphics where the model data is going to be painted.
+	 */
+	public void draw(Graphics g, int highlighted) {
 		sortControlPoints();
 		generateGraphics();
-		drawControlPoints(g);
-		drawLines(g);
+		drawControlPoints(g, highlighted);
+		//drawLines(g);
 		drawGraphics(g);
 	}
 	
-	private void drawControlPoints(Graphics graphics) {
+	/**
+	 * Draws the control points.
+	 * @param graphics
+	 */
+	private void drawControlPoints(Graphics graphics, int highlighted) {
 		if (getControlPointsColor() == null)
 			graphics.setColor(getRandomColor(null));
 		setControlPointsColor(graphics.getColor());
 		for (Point point : getControlPoints()) {
 			graphics.fillOval(point.x - POINT_RADIUS, point.y - POINT_RADIUS, 
 					POINT_DIAMETER, POINT_DIAMETER);
+			if (getControlPoints().indexOf(point) == highlighted)
+				graphics.drawOval(point.x - POINT_RADIUS - OUTRING, point.y - POINT_RADIUS - OUTRING, 
+					POINT_DIAMETER + OUTRING * 2, POINT_DIAMETER + OUTRING * 2);
 		}
 	}
 	
+	/**
+	 * Draws the straight lines between the control points.
+	 * @param graphics
+	 */
+	@SuppressWarnings("unused")
 	private void drawLines(Graphics graphics) {
 		for (int i = 0; i < getControlPoints().size() - 1; i++) {
 			graphics.drawLine(getControlPoints().get(i).x, getControlPoints().get(i).y, 
@@ -143,6 +169,10 @@ public class SplinesInterpolation {
 		}
 	}
 	
+	/**
+	 * Draws the complete interpolation.
+	 * @param graphics
+	 */
 	private void drawGraphics(Graphics graphics) {
 		Graphics2D betterGraphics = (Graphics2D) graphics;
 		betterGraphics.setStroke(new BasicStroke(STROKE_THICKNESS));
@@ -155,6 +185,9 @@ public class SplinesInterpolation {
 		}
 	}
 	
+	/**
+	 * Resets the model to its initial state.
+	 */
 	public void reset() {
 		setnNodes(0);
 		controlPoints.clear();
@@ -177,6 +210,11 @@ public class SplinesInterpolation {
 		});
 	}
 	
+	/**
+	 * Returns a random color, that cannot be the same as the given one by parameter.
+	 * @param exception
+	 * @return
+	 */
 	private Color getRandomColor(Color exception) {
 		Random random = new Random();
 		boolean selected = false;
@@ -191,62 +229,66 @@ public class SplinesInterpolation {
 	
 	
 	/**
-	 * This class creates a monotone cubic spline, so it can calculate the Y that corresponds any X in the splines graphic.
+	 * This class creates a monotone cubic spline, so it can calculate the Y 
+	 * that corresponds any X in the splines graphic.
 	 * @author Óscar Darias Plasencia
 	 * @since 13-5-2017
 	 */
 	protected class MonotoneCubicSpline {
 		
-		private List<Point> controlPoints;
-		private double[] mM;
-
-		
+		private List<Point> controlPoints;			/* Control points */
+		private double[] interValues;				/* Interpolation values */
+ 
+		/**
+		 * Constructor that the interpolation values from the given control points.
+		 * This interpolation values can be used to obtain Y = f(X)
+		 * @param controlPoints
+		 */
 		public MonotoneCubicSpline(List<Point> controlPoints) {
 			if (controlPoints == null || controlPoints.size() < 2) {
 				throw new IllegalArgumentException("There must be at least two control "
 						+ "points and the arrays must be of equal length.");
 			}
 
-			//final int n = cont.size();
-			double[] d = new double[controlPoints.size() - 1]; 
-			double[] m = new double[controlPoints.size()];
+			double[] directors = new double[controlPoints.size() - 1];   
+			double[] interpolationValues = new double[controlPoints.size()]; 
 
 			// Compute slopes of secant lines between successive points.
 			for (int i = 0; i < controlPoints.size() - 1; i++) {
-				double h = controlPoints.get(i + 1).x - controlPoints.get(i).x;
-				if (h <= 0f) {
+				double slope = controlPoints.get(i + 1).x - controlPoints.get(i).x; 
+				if (slope <= 0f) {
 					throw new IllegalArgumentException("The control points must all "
 							+ "have strictly increasing X values.");
 				}
-				d[i] = (controlPoints.get(i + 1).y - controlPoints.get(i).y) / h;
+				directors[i] = (controlPoints.get(i + 1).y - controlPoints.get(i).y) / slope;
 			}
 
-			// Initialize the tangents as the average of the secants.
-			m[0] = d[0];
-			for (int i = 1; i < controlPoints.size() - 1; i++) {
-				m[i] = (d[i - 1] + d[i]) * 0.5f;
-			}
-			m[controlPoints.size() - 1] = d[controlPoints.size() - 2];
+			// Initialize the tangents as the average of the secants
+			interpolationValues[0] = directors[0];
+			for (int i = 1; i < controlPoints.size() - 1; i++)
+				interpolationValues[i] = (directors[i - 1] + directors[i]) * 0.5f;
+			interpolationValues[controlPoints.size() - 1] = directors[controlPoints.size() - 2];
 
 			// Update the tangents to preserve monotonicity.
 			for (int i = 0; i < controlPoints.size() - 1; i++) {
-				if (d[i] == 0f) { // successive Y values are equal
-					m[i] = 0f;
-					m[i + 1] = 0f;
+				// Successive Y values are equal
+				if (directors[i] == 0f) { 
+					interpolationValues[i] = 0f;
+					interpolationValues[i + 1] = 0f;
 				} else {
-					double a = m[i] / d[i];
-					double b = m[i + 1] / d[i];
-					double h = (double) Math.hypot(a, b);
-					if (h > 9f) {
-						double t = 3f / h;
-						m[i] = t * a * d[i];
-						m[i + 1] = t * b * d[i];
+					double hickA = interpolationValues[i] / directors[i]; 
+					double hickB = interpolationValues[i + 1] / directors[i]; 
+					double hypot = (double) Math.hypot(hickA, hickB);
+					if (hypot > 9f) { 
+						double aux = 3f / hypot;
+						interpolationValues[i] = aux * hickA * directors[i];
+						interpolationValues[i + 1] = aux * hickB * directors[i]; 
 					}
 				}
 			}
 			
 			this.controlPoints = controlPoints;
-			this.mM = m;
+			this.interValues = interpolationValues;
 		}
 
 		/**
@@ -256,35 +298,28 @@ public class SplinesInterpolation {
 		 * @return The interpolated Y = f(X) value.
 		 */
 		public double interpolate(double x) {
-			// Boundary cases.
+			// Manage boundary cases
 			final int n = controlPoints.size();
-			if (Double.isNaN(x)) {
+			if (Double.isNaN(x))
 				return x;
-			}
-			
-			if (x <= controlPoints.get(0).x) {
+			if (x <= controlPoints.get(0).x)
 				return controlPoints.get(0).y;
-			}
-			
-			if (x >= controlPoints.get(n - 1).x) {
+			if (x >= controlPoints.get(n - 1).x)
 				return controlPoints.get(n - 1).y;
-			}
 
-			// Find the index 'i' of the last point with smaller X.
-			// We know this will be within the spline due to the boundary tests.
+			// Find the index 'i' of the last point with the smaller X value.
 			int i = 0;
 			while (x >= controlPoints.get(i + 1).x) {
 				i += 1;
-				if (x == controlPoints.get(i).x) {
+				if (x == controlPoints.get(i).x)
 					return controlPoints.get(i).y;
-				}
 			}
 
-			// Perform cubic Hermite spline interpolation.
+			// Perform cubic spline interpolation.
 			double h = controlPoints.get(i + 1).x - controlPoints.get(i).x;
 			double t = (x - controlPoints.get(i).x) / h;
-			return (controlPoints.get(i).y * (1 + 2 * t) + h * mM[i] * t) * (1 - t) * (1 - t)
-					+ (controlPoints.get(i + 1).y * (3 - 2 * t) + h * mM[i + 1] * (t - 1)) * t * t;
+			return (controlPoints.get(i).y * (1 + 2 * t) + h * interValues[i] * t) * (1 - t) * (1 - t)
+					+ (controlPoints.get(i + 1).y * (3 - 2 * t) + h * interValues[i + 1] * (t - 1)) * t * t;
 		}
 	}
 
