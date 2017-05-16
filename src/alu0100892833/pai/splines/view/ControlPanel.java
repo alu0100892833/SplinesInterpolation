@@ -31,6 +31,7 @@ public class ControlPanel extends JPanel {
 	private JButton generate, reset;		/* Generate and reset buttons, to start the spline interpolation or resetting it. */
 	private JTextField nNodes;				/* Text field where the number of used nodes should be specified */
 	private JLabel imageLabel;				/* Label for the info icon */
+	private InformationFrame informationFrame;
 	
 	/**
 	 * Constructor that creates the layout.
@@ -74,11 +75,12 @@ public class ControlPanel extends JPanel {
 		Image resized = infoPicture.getScaledInstance(INFO_ICON_DIMENSIONS.width, INFO_ICON_DIMENSIONS.height, 
 				Image.SCALE_SMOOTH);
 		imageLabel = new JLabel(new ImageIcon(resized));
+		imageLabel.setName("INFOLABEL");
 		add(imageLabel);
 		
 		imageLabel.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {  
-				InformationFrame informationFrame = new InformationFrame();
+				informationFrame = new InformationFrame();
 				informationFrame.setVisible(true);
 		    }  
 		});
@@ -124,6 +126,16 @@ public class ControlPanel extends JPanel {
 	public void setImageLabel(JLabel imageLabel) {
 		this.imageLabel = imageLabel;
 	}
+
+	public InformationFrame getInformationFrame() {
+		return informationFrame;
+	}
+
+	public void setInformationFrame(InformationFrame informationFrame) {
+		this.informationFrame = informationFrame;
+	}
+	
+	
 	
 	
 

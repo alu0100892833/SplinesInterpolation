@@ -1,6 +1,5 @@
 package alu0100892833.pai.splines;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Point;
@@ -18,6 +17,7 @@ import javax.swing.JFrame;
 
 import alu0100892833.pai.splines.view.ControlPanel;
 import alu0100892833.pai.splines.view.SplinePanel;
+import alu0100892833.pai.splines.view.SplinesView;
 
 /**
  * Controller for the Splines interpolation program. It manages every task, sets the listeners... etc.
@@ -29,6 +29,7 @@ public class SplinesInterpolationControl {
 	public static final int APPLET = 1;
 	public static final int POINT_MOVEMENT = 10;
 	
+	private SplinesView frame;
 	private SplinePanel splinePanel;
 	private ControlPanel controlPanel;
 	private SplinesInterpolation model;
@@ -66,14 +67,19 @@ public class SplinesInterpolationControl {
 	 * Creates a frame with the two panels.
 	 */
 	private void initWindow(Dimension size) {
-		JFrame frame = new JFrame("SPLINE INTERPOLATION");
-		frame.setLayout(new BorderLayout());
-		frame.add(splinePanel, BorderLayout.CENTER);
-		frame.add(controlPanel, BorderLayout.SOUTH);
+		frame = new SplinesView(size, splinePanel, controlPanel);
+		frame.setTitle("SPLINE INTERPOLATION");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLocationRelativeTo(null);
-		frame.setSize(size);
 		frame.setVisible(true);
+	}
+	
+	/**
+	 * Returns the main frame.
+	 * @return
+	 */
+	public SplinesView getFrame() {
+		return frame;
 	}
 	
 	/**
@@ -131,7 +137,7 @@ public class SplinesInterpolationControl {
 						getSplinePanel().revalidate();
 						getSplinePanel().repaint();
 					} catch(NumberFormatException exception) {
-						exception.printStackTrace();
+						System.out.println("NO POINTS SPECIFIED");
 					}
 				}
 			} else if (e.getSource() == getControlPanel().getReset()) {
