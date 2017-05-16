@@ -9,11 +9,13 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.event.MouseInputAdapter;
 
 import alu0100892833.pai.splines.view.ControlPanel;
 import alu0100892833.pai.splines.view.SplinePanel;
@@ -33,6 +35,7 @@ public class SplinesInterpolationControl {
 	private SplinePanel splinePanel;
 	private ControlPanel controlPanel;
 	private SplinesInterpolation model;
+	private Point activePoint;
 	
 	/**
 	 * Constructor with parameters.
@@ -60,7 +63,8 @@ public class SplinesInterpolationControl {
 		}
 		
 		controlPanel.addActionListeners(cListener);
-		splinePanel.addMouseListener(new PointSelection());
+		splinePanel.addMouseListener(new MousePointing());
+		splinePanel.addMouseMotionListener(new MouseMoving());
 	}
 	
 	/**
@@ -120,7 +124,46 @@ public class SplinesInterpolationControl {
 	}
 	
 	
+	/**
+	 * This method makes sure that every point stays in range.
+	 * @param activePoint
+	 */
+	private boolean checkPointPosition(Point activePoint) {
+		if (activePoint.x - SplinesInterpolation.POINT_RADIUS < 0) {
+			activePoint.x = SplinesInterpolation.POINT_RADIUS;
+			return false;
+		}
+		else if (activePoint.y - SplinesInterpolation.POINT_RADIUS < 0) {
+			activePoint.y = SplinesInterpolation.POINT_RADIUS;
+			return false;
+		}
+		else if (activePoint.x + SplinesInterpolation.POINT_RADIUS > getSplinePanel().getWidth()) {
+			activePoint.x = getSplinePanel().getWidth() - SplinesInterpolation.POINT_RADIUS;
+			return false;
+		}
+		else if (activePoint.y + SplinesInterpolation.POINT_RADIUS > getSplinePanel().getHeight()) {
+			activePoint.y = getSplinePanel().getHeight() - SplinesInterpolation.POINT_RADIUS;
+			return false;
+		}
+		return true;
+	}
 	
+	
+	
+	
+	
+	public Point getActivePoint() {
+		return activePoint;
+	}
+
+	public void setActivePoint(Point activePoint) {
+		this.activePoint = activePoint;
+	}
+
+
+
+
+
 	/**
 	 * Listener class to add functionality to the buttons of the control panel.
 	 * @author Óscar Darias Plasencia
@@ -136,6 +179,7 @@ public class SplinesInterpolationControl {
 						getModel().setnNodes(nNodes); 
 						getSplinePanel().revalidate();
 						getSplinePanel().repaint();
+						getControlPanel().specifyActiveNodeCoordinates("MOVE TO START");
 					} catch(NumberFormatException exception) {
 						System.out.println("NO POINTS SPECIFIED");
 					}
@@ -144,6 +188,20 @@ public class SplinesInterpolationControl {
 				getModel().reset();
 				getSplinePanel().revalidate();
 				getSplinePanel().repaint();
+				getControlPanel().specifyActiveNodeCoordinates("NO POINTS YET");
+			} else if (e.getSource() == getControlPanel().getAdd()) {
+				try {
+					int x = Integer.parseInt(getControlPanel().getPositionX().getText().trim());
+					int y = Integer.parseInt(getControlPanel().getPositionY().getText().trim());
+					Point newPoint = new Point(x, y);
+					if (checkPointPosition(newPoint)) {
+						getModel().addControlPoint(new Point(x, y));
+						getSplinePanel().revalidate();
+						getSplinePanel().repaint();
+					}
+				} catch(NumberFormatException exception) {
+					System.err.println("NO VALID POINTS");
+				}
 			}
 			getSplinePanel().requestFocus();
 		}
@@ -189,29 +247,61 @@ public class SplinesInterpolationControl {
 					splinePanel.repaint();
 				}
 			}
+			checkPointPosition(activePoint);
+			activePoint = getSplinePanel().getCurrentNode();
+			getControlPanel().specifyActiveNodeCoordinates("[" + activePoint.getX() + ", " + activePoint.getY() + "]");
 		}
 	}
 	
 	
-	/**
-	 * Mouse Adapter extended class for mouse interaction with the graphics.
-	 * @author Óscar Darias Plasencia
-	 * @since 14-5-2017
-	 */
-	protected class PointSelection extends MouseAdapter {
+	protected class MousePointing extends MouseInputAdapter {
+		
 		@Override
 		public void mouseClicked(MouseEvent me) {
 			int x = me.getX();
 			int y = me.getY();
+			Point reference = getPressedPoint(x, y);
+			if (reference == null) {
+				getModel().addControlPoint(new Point(x, y));
+			}
+			getSplinePanel().revalidate();
+			getSplinePanel().repaint();
+		}
+		
+		
+		@Override
+		public void mousePressed(MouseEvent me) {
+			setActivePoint(getPressedPoint(me.getX(), me.getY()));
+		}
+		
+		@Override
+		public void mouseReleased(MouseEvent me) {
+			setActivePoint(null);
+		}
+		
+		public Point getPressedPoint(int x, int y) {
 			for (Point point : getSplinePanel().getSplinesModel().getControlPoints()) {
 				if ((Math.abs(point.x - x) <= SplinesInterpolation.POINT_RADIUS)
-						&& (Math.abs(point.y - y) <= SplinesInterpolation.POINT_RADIUS))
+						&& (Math.abs(point.y - y) <= SplinesInterpolation.POINT_RADIUS)) {
 					getSplinePanel().setSelectedNode(getSplinePanel().getSplinesModel().getControlPoints().indexOf(point));
+					return getSplinePanel().getCurrentNode();
+				}
 			}
-			getSplinePanel().requestFocus();
+			return null;
 		}
 	}
 	
+	protected class MouseMoving extends MouseMotionAdapter {
+		@Override
+		public void mouseDragged(MouseEvent me) {
+			if (getActivePoint() != null) {
+				getActivePoint().x = me.getX();
+				getActivePoint().y = me.getY();
+				getSplinePanel().revalidate();
+				getSplinePanel().repaint();
+			}
+		}
+	}
 }
 
 

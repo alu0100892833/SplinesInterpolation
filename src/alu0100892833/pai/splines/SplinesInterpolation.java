@@ -38,6 +38,7 @@ public class SplinesInterpolation {
 	private ArrayList<Point2D.Double> graphic;  /* ArrayList with the generated points */
 	private Color controlPointsColor;           /* Control points color */
 	private Color graphicColor;					/* Graphics color */
+	private Color selectedPointColor;			/* Color for the selected point */
 	
 	/**
 	 * Main constructor
@@ -76,6 +77,11 @@ public class SplinesInterpolation {
 	public void setControlPoints(ArrayList<Point> points) {
 		this.controlPoints = points;
 	}
+	
+	public void addControlPoint(Point newPoint) {
+		nNodes++;
+		getControlPoints().add(newPoint);
+	}
 		
 	public ArrayList<Point2D.Double> getGraphic() {
 		return graphic;
@@ -100,6 +106,15 @@ public class SplinesInterpolation {
 	public void setGraphicColor(Color graphicColor) {
 		this.graphicColor = graphicColor;
 	}
+
+	public Color getSelectedPointColor() {
+		return selectedPointColor;
+	}
+
+	public void setSelectedPointColor(Color selectedPointColor) {
+		this.selectedPointColor = selectedPointColor;
+	}
+
 
 	/**
 	 * Generates as many aleatory points as number of nodes.
@@ -133,6 +148,7 @@ public class SplinesInterpolation {
 	 * @param g Graphics where the model data is going to be painted.
 	 */
 	public void draw(Graphics g, int highlighted) {
+		setColors();
 		sortControlPoints();
 		generateGraphics();
 		drawControlPoints(g, highlighted);
@@ -140,20 +156,26 @@ public class SplinesInterpolation {
 		drawGraphics(g);
 	}
 	
+	private void setColors() {
+		if (getControlPointsColor() == null) {
+			setControlPointsColor(getRandomColor(null));
+			setGraphicColor(getRandomColor(getControlPointsColor()));
+			setSelectedPointColor(getRandomColor(getControlPointsColor()));
+		}
+	}
+	
 	/**
 	 * Draws the control points.
 	 * @param graphics
 	 */
 	private void drawControlPoints(Graphics graphics, int highlighted) {
-		if (getControlPointsColor() == null)
-			graphics.setColor(getRandomColor(null));
-		setControlPointsColor(graphics.getColor());
 		for (Point point : getControlPoints()) {
+			if (getControlPoints().indexOf(point) == highlighted) {
+				graphics.setColor(getSelectedPointColor());
+			} else
+				graphics.setColor(getControlPointsColor());
 			graphics.fillOval(point.x - POINT_RADIUS, point.y - POINT_RADIUS, 
 					POINT_DIAMETER, POINT_DIAMETER);
-			if (getControlPoints().indexOf(point) == highlighted)
-				graphics.drawOval(point.x - POINT_RADIUS - OUTRING, point.y - POINT_RADIUS - OUTRING, 
-					POINT_DIAMETER + OUTRING * 2, POINT_DIAMETER + OUTRING * 2);
 		}
 	}
 	
@@ -175,10 +197,8 @@ public class SplinesInterpolation {
 	 */
 	private void drawGraphics(Graphics graphics) {
 		Graphics2D betterGraphics = (Graphics2D) graphics;
-		betterGraphics.setStroke(new BasicStroke(STROKE_THICKNESS));
-		if (getGraphicColor() == null)
-			setGraphicColor(getRandomColor(getControlPointsColor()));
 		betterGraphics.setColor(getGraphicColor());
+		betterGraphics.setStroke(new BasicStroke(STROKE_THICKNESS));
 		for (int i = 0; i < getGraphic().size() - 1; i++) {
 			betterGraphics.draw(new Line2D.Double(getGraphic().get(i).x, getGraphic().get(i).y,
 					getGraphic().get(i + 1).x, getGraphic().get(i + 1).y));

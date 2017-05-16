@@ -81,6 +81,9 @@ public class SplinesViewTest extends AssertJSwingJUnitTestCase {
 		assertTrue(program.getControlPanel().getInformationFrame().isVisible());
 	}
 	
+	/**
+	 * Tests keyboard input.
+	 */
 	@Test
 	public void testKeyboardInput() {
 		frame.panel("CONTROL").textBox("NODES-NUMBER").enterText(DECLARING_POINTS.toString());

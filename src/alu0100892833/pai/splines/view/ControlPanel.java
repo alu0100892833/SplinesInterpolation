@@ -28,9 +28,10 @@ public class ControlPanel extends JPanel {
 	private static final int VERTICAL_MARGIN = 20;
 	private static final Dimension INFO_ICON_DIMENSIONS = new Dimension(20, 20);
 	
-	private JButton generate, reset;		/* Generate and reset buttons, to start the spline interpolation or resetting it. */
-	private JTextField nNodes;				/* Text field where the number of used nodes should be specified */
+	private JButton generate, reset, add;		/* Generate and reset buttons, to start the spline interpolation or resetting it. */
+	private JTextField nNodes, positionX, positionY;				/* Text field where the number of used nodes should be specified */
 	private JLabel imageLabel;				/* Label for the info icon */
+	private JLabel activeNodeCoordinates;	/* The label for the coordinates of the active node */
 	private InformationFrame informationFrame;
 	
 	/**
@@ -44,16 +45,29 @@ public class ControlPanel extends JPanel {
 		generate.setName("GENERATE");
 		reset = new JButton("RESET");
 		reset.setName("RESET");
+		add = new JButton("ADD POINT");
+		
+		positionX = new JTextField("   X COORDINATE   ");
+		positionY = new JTextField("   Y COORDINATE   ");
+		
 		nNodes = new JTextField("Nº OF NODES");
 		nNodes.setHorizontalAlignment(JTextField.CENTER);
 		nNodes.setName("NODES-NUMBER");
+		activeNodeCoordinates = new JLabel("SELECTED: NO POINTS YET");
 		
 		JPanel generationPanel = new JPanel(new GridLayout(2, 1));
 		generationPanel.add(generate);
 		generationPanel.add(nNodes);
 		
+		JPanel manualGeneration = new JPanel(new GridLayout(2, 1));
+		manualGeneration.add(positionX);
+		manualGeneration.add(positionY);
+		
 		add(generationPanel);
+		add(manualGeneration);
+		add(add);
 		add(reset);
+		add(activeNodeCoordinates);
 	}
 	
 	/**
@@ -63,6 +77,7 @@ public class ControlPanel extends JPanel {
 	public void addActionListeners(ActionListener al) {
 		getGenerate().addActionListener(al);
 		getReset().addActionListener(al);
+		getAdd().addActionListener(al);
 	}
 	
 	
@@ -133,6 +148,42 @@ public class ControlPanel extends JPanel {
 
 	public void setInformationFrame(InformationFrame informationFrame) {
 		this.informationFrame = informationFrame;
+	}
+
+	public JLabel getActiveNodeCoordinates() {
+		return activeNodeCoordinates;
+	}
+
+	public void setActiveNodeCoordinates(JLabel activeNodeCoordinates) {
+		this.activeNodeCoordinates = activeNodeCoordinates;
+	}
+	
+	public void specifyActiveNodeCoordinates(String coordinates) {
+		getActiveNodeCoordinates().setText("SELECTED: " + coordinates);
+	}
+
+	public JButton getAdd() {
+		return add;
+	}
+
+	public void setAdd(JButton add) {
+		this.add = add;
+	}
+
+	public JTextField getPositionX() {
+		return positionX;
+	}
+
+	public void setPositionX(JTextField positionX) {
+		this.positionX = positionX;
+	}
+
+	public JTextField getPositionY() {
+		return positionY;
+	}
+
+	public void setPositionY(JTextField positionY) {
+		this.positionY = positionY;
 	}
 	
 	
